@@ -1,39 +1,50 @@
-import type { BaselineRow } from "@/lib/types";
+import type { BaselineTable } from "@/lib/types";
 
-const COLS = ["do_nothing", "fallback", "negotiated"] as const;
+const PLACEHOLDER: BaselineTable = {
+  columns: [
+    { key: "nothing", label: "Do nothing" },
+    { key: "fallback", label: "Fallback" },
+    { key: "negotiated", label: "Negotiated" },
+  ],
+  rows: ["Total delay (min)", "Holding (min)", "Est. holding fuel (kg)", "Violations"].map((metric) => ({ metric, values: {} })),
+};
 
-export function Baseline({ rows, mock }: { rows: BaselineRow[] | null; mock: boolean }) {
+export function Baseline({ table, mock }: { table: BaselineTable | null; mock: boolean }) {
+  const t = table ?? PLACEHOLDER;
   return (
     <section className="card" aria-labelledby="h-base">
       <h2 id="h-base">5. Baseline comparison</h2>
       <p className="sub">
-        {rows
-          ? mock
-            ? "MOCK values from the in-browser simulator, not computed from flights.csv."
-            : "Do nothing vs deterministic fallback vs negotiated plan, for this row."
-          : "Placeholder values until the scenario runs."}
+        {table
+          ? `${mock ? "MOCK values from the in-browser simulator. " : ""}Lower is better. Fuel uses constraints.xlsx:fuel_and_crew burn rates.`
+          : "Appears with Suggestion 1 and updates on the final decision."}
       </p>
       <table>
         <thead>
           <tr>
             <th>Metric</th>
-            <th>Do nothing</th>
-            <th>Fallback</th>
-            <th>Negotiated</th>
+            {t.columns.map((c) => (
+              <th key={c.key} className={table && c.highlight ? "hl" : ""}>
+                {c.label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {(rows ?? PLACEHOLDER).map((r) => {
-            const vals = COLS.map((c) => r[c]).filter((v): v is number => v != null);
-            const best = vals.length ? Math.min(...vals) : null;
+          {t.rows.map((r) => {
+            const violations = r.metric === "Violations";
             return (
               <tr key={r.metric}>
                 <td>{r.metric}</td>
-                {COLS.map((c) => (
-                  <td key={c} className={rows && r[c] != null && r[c] === best ? "best" : ""}>
-                    {r[c] == null ? (rows && c === "negotiated" ? "n/a" : "–") : r[c].toLocaleString()}
-                  </td>
-                ))}
+                {t.columns.map((c) => {
+                  const v = r.values[c.key];
+                  const cls = [table && c.highlight ? "hl" : "", violations && v ? "viol" : ""].join(" ").trim();
+                  return (
+                    <td key={c.key} className={cls}>
+                      {v == null ? "–" : violations && v ? `${v} ✗` : v.toLocaleString()}
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}
@@ -42,7 +53,3 @@ export function Baseline({ rows, mock }: { rows: BaselineRow[] | null; mock: boo
     </section>
   );
 }
-
-const PLACEHOLDER: BaselineRow[] = ["Total delay (min)", "Holding (min)", "Est. holding fuel (kg)", "Violations"].map(
-  (metric) => ({ metric, do_nothing: null, fallback: null, negotiated: null }),
-);

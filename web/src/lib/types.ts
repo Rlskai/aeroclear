@@ -34,6 +34,8 @@ export interface Sourced<T> {
 
 export interface Proposal {
   proposal_id: string;
+  /** Set when the plan diverts to an alternate airport. Omitted = original destination. */
+  airport?: Sourced<string>;
   runway: Sourced<string>;
   gate: Sourced<string>;
   eta: Sourced<string>;
@@ -55,6 +57,8 @@ export interface LogEntry {
   proposal?: Proposal | null;
   check?: CheckResult | null;
   violated_constraint?: ViolationCode | null;
+  /** Agent's domain score for the proposal under discussion, vs its floor. */
+  score?: { value: number; floor: number } | null;
   rationale: string;
   sources?: string[];
   ts: string;
@@ -70,7 +74,7 @@ export type FallbackReason =
   | "TOKEN_BUDGET"
   | "NO_PROGRESS"
   | "STALEMATE"
-  | "INFEASIBLE"
+  | "INFEASIBLE_NO_SAFE_SLOT"
   | "API_FAILURE";
 
 export interface Suggestion {
@@ -88,13 +92,14 @@ export interface Approval {
   reason?: string;
 }
 
-export interface BaselineRow {
-  metric: string;
-  do_nothing: number | null;
-  fallback: number | null;
-  negotiated: number | null;
-  /** lower is better for every metric we show */
+/** Columns vary by scenario: S1/S2 use do-nothing / fallback / negotiated; S3 uses do-nothing / S1 / S2 / final call. */
+export interface BaselineTable {
+  columns: { key: string; label: string; highlight?: boolean }[];
+  /** Lower is better for every metric we show. */
+  rows: { metric: string; values: Record<string, number | null> }[];
 }
+
+export type LowFuel = "off" | "moderate" | "severe";
 
 export interface Scenario {
   row_id: number;
@@ -117,13 +122,14 @@ export interface Limits {
 
 /** Events pushed over the run stream (SSE in the real backend). */
 export type RunEvent =
-  | { kind: "phase_start"; phase: number; limits: Limits }
+  | { kind: "phase_start"; phase: number; limits: Limits; constraints_added?: string[] }
+  | { kind: "thinking"; role: Role }
   | { kind: "turn_start"; phase: number; turn: number; candidates: number; note?: string }
   | { kind: "entry"; entry: LogEntry }
   | { kind: "meter"; phase: number; wall_s: number; tokens: number }
   | { kind: "suggestion"; suggestion: Suggestion }
   | { kind: "approval"; suggestion_index: number; approval: Approval }
-  | { kind: "baseline"; rows: BaselineRow[] }
+  | { kind: "baseline"; table: BaselineTable }
   | { kind: "awaiting_human_call"; options: Suggestion[] }
   | { kind: "final"; proposal: Proposal; decided_by: "HUMAN_APPROVED" | "HUMAN_CALL" }
   | { kind: "error"; message: string };

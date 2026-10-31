@@ -11,7 +11,8 @@ export function createHttpApi(base: string): NegotiationApi {
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
     if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path} failed: ${res.status}`);
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 
   return {
@@ -20,11 +21,11 @@ export function createHttpApi(base: string): NegotiationApi {
     listScenarios: (f: ScenarioFilter) =>
       json<Scenario[]>(`/scenarios?airport=${encodeURIComponent(f.airport)}&delay_type=${f.delayType}`),
 
-    startRun: async (rowId, injectLowFuel) =>
+    startRun: async (rowId, lowFuel) =>
       (
         await json<{ run_id: string }>("/runs", {
           method: "POST",
-          body: JSON.stringify({ row_id: rowId, inject: { low_fuel: injectLowFuel } }),
+          body: JSON.stringify({ row_id: rowId, inject: { low_fuel: lowFuel } }),
         })
       ).run_id,
 
@@ -51,5 +52,7 @@ export function createHttpApi(base: string): NegotiationApi {
 
     getLog: (runId) => json<LogEntry[]>(`/runs/${runId}/log`),
     verify: (runId) => json<VerifyResult>(`/runs/${runId}/verify`),
+    tamper: (runId) => json<void>(`/runs/${runId}/tamper`, { method: "POST" }),
+    untamper: (runId) => json<void>(`/runs/${runId}/tamper/reset`, { method: "POST" }),
   };
 }
