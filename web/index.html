@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- OWNER: P3. Live negotiation timeline. Open in a browser after filling in the two values below. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AeroClear: Disruption Negotiation</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; }
+    .msg { border-left: 4px solid #ccc; padding: .4rem .8rem; margin: .4rem 0; }
+    .ATC { border-color: #2563eb; } .PILOT { border-color: #16a34a; }
+    .GROUND { border-color: #d97706; } .CHECKER, .SYSTEM { border-color: #6b7280; }
+    .bad { color: #dc2626; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>AeroClear</h1>
+  <div id="timeline"></div>
+  <script>
+    // Public values only (anon key). NEVER put the service key here.
+    const SUPABASE_URL = "";
+    const SUPABASE_ANON_KEY = "";
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const el = document.getElementById("timeline");
+
+    function add(row) {
+      const m = row.body;
+      const p = m.proposal ? ` runway ${m.proposal.runway.value}, gate ${m.proposal.gate.value}, ETA ${m.proposal.eta.value}` : "";
+      const v = m.violated_constraint ? ` <span class="bad">${m.violated_constraint}</span>` : "";
+      el.insertAdjacentHTML("beforeend",
+        `<div class="msg ${m.sender}"><b>[${m.phase}.${m.turn}] ${m.sender}</b> ${m.type}${v}${p}<br><small>${m.rationale}</small></div>`);
+    }
+
+    // Load existing messages, then listen for new ones live
+    sb.from("messages").select("*").order("id").then(({ data }) => (data || []).forEach(add));
+    sb.channel("negotiation")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) => add(p.new))
+      .subscribe();
+    // TODO: run picker, result card, 3 approval buttons, baseline panel, verify status
+  </script>
+</body>
+</html>
