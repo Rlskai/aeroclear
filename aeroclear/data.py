@@ -1,6 +1,36 @@
 """OWNER: P1. Loads datasets and builds scenario inputs.
 TODO: replace the hard-coded values with real rows from flights.csv / airports.csv /
 references/Datasets/challenge2_operational_constraints.xlsx."""
+import os
+import urllib.parse
+from pathlib import Path
+
+import httpx  # installed with supabase
+
+BUCKET = "Aeroclear bucket"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+
+def dataset_path(name):
+    """Local path to a dataset from the Supabase bucket, e.g. dataset_path("flights.csv").
+    Downloads it into data/ the first time; later calls reuse the local copy."""
+    path = DATA_DIR / name
+    if path.exists():
+        return path
+    DATA_DIR.mkdir(exist_ok=True)
+    url, key = os.environ["SUPABASE_URL"], os.getenv("SUPABASE_SERVICE_KEY")
+    obj = f"{urllib.parse.quote(BUCKET)}/{urllib.parse.quote(name)}"
+    if key:  # private bucket: needs the secret key
+        r = httpx.get(f"{url}/storage/v1/object/{obj}",
+                      headers={"apikey": key, "Authorization": f"Bearer {key}"}, timeout=120)
+    else:  # public bucket
+        r = httpx.get(f"{url}/storage/v1/object/public/{obj}", timeout=120)
+    if r.status_code != 200:
+        raise RuntimeError(f"Could not download {name} from Supabase ({r.status_code}). "
+                           "Private bucket? Set SUPABASE_SERVICE_KEY in .env.")
+    path.write_bytes(r.content)
+    return path
+
 
 
 def load_scenario(n):

@@ -5,3 +5,4 @@ __pycache__/
 logs/*.jsonl
 *.dmg
 .DS_Store
+data/

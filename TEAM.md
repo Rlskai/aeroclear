@@ -69,6 +69,17 @@ Because you each edit different files, merges should not conflict.
 
 Without Supabase values, everything still runs and logs to `logs/`.
 
+### Datasets (Supabase Storage)
+
+Datasets like `flights.csv` live in the `Aeroclear bucket` bucket, not in git (too big). In code:
+
+```python
+from aeroclear.data import dataset_path
+df = pd.read_csv(dataset_path("flights.csv"))
+```
+
+The first call downloads the file into `data/` (gitignored); later calls reuse it. Needs `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` in `.env`. To add a dataset, upload it to the bucket in the dashboard.
+
 ## Meet-up points
 
 | When | What |
