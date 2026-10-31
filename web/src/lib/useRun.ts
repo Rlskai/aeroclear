@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { api } from "./api";
+import { subscribeBackendRun } from "./backend";
 import { MAX_REPLAY_GAP_MS, saveRecording, type Recording } from "./recordings";
 import type { Approval, BaselineTable, Limits, LogEntry, LowFuel, Proposal, Role, RunEvent, Suggestion } from "./types";
 
@@ -27,8 +28,8 @@ export interface RunState {
   runId: string;
   label: string;
   presetId?: string;
-  /** "recorded" = replayed from a saved stream, read-only. */
-  source: "live" | "recorded";
+  /** "recorded" = replayed from a saved stream, read-only. "backend" = real Python run from its log file, read-only. */
+  source: "live" | "recorded" | "backend";
   phases: PhaseView[];
   entries: LogEntry[];
   suggestions: Suggestion[];
@@ -198,9 +199,18 @@ export function useRuns() {
 
   const select = useCallback((runId: string) => dispatch({ type: "select", runId }), []);
 
+  // Real backend runs: opened once, then kept live while the page is open.
+  const opened = useRef(new Set<string>());
+  const openBackend = useCallback((runId: string, label: string) => {
+    if (opened.current.has(runId)) return dispatch({ type: "select", runId });
+    opened.current.add(runId);
+    dispatch({ type: "add", meta: { runId, label, source: "backend" } });
+    subs.current.push(subscribeBackendRun(runId, (event) => dispatch({ type: "event", runId, event })));
+  }, []);
+
   const runs = store.order.map((id) => store.runs[id]);
   const active = store.active ? store.runs[store.active] : null;
-  return { runs, active, error: store.error, start, replay, select };
+  return { runs, active, error: store.error, start, replay, select, openBackend };
 }
 
 export function currentSuggestion(s: RunState | null): Suggestion | null {
@@ -221,6 +231,7 @@ export function runStatus(s: RunState): RunStatus {
   if (s.error) return { text: "error", cls: "bad" };
   if (s.final) return s.final.decided_by === "HUMAN_CALL" ? { text: "📞 human call", cls: "warn" } : { text: "✓ approved", cls: "" };
   if (s.humanCallOptions) return { text: "📞 in call", cls: "bad" };
+  if (s.source === "backend" && !isRunning(s)) return { text: `✓ ${currentSuggestion(s)?.path ?? "done"}`, cls: "" };
   if (isRunning(s)) return { text: "⟳ running", cls: "wait" };
   return { text: "awaiting humans", cls: "wait" };
 }

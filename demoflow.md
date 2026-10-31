@@ -25,7 +25,7 @@ Each agent gets one scenario where its constraint decides the outcome. That answ
 
 - **One presenter, one screen.** All three approval panels (Pilot, ATC, Ground) are visible side by side.
 - **Demo / User toggle** in the header, default **Demo**.
-  - Demo: three preset buttons (**S1 Happy path**, **S2 Ground-driven**, **S3 Low fuel**), scripted reject reasons pre-filled and labelled **"Scripted for demo"**, **Replay recorded run** button, tamper demo on S1.
+  - Demo: three preset buttons (**S1 Happy path**, **S2 Ground-driven**, **S3 Low fuel**), scripted reject reasons pre-filled (not labelled on screen), **Replay recorded run** button, tamper demo on S1.
   - User: full picker (airport → delay type → row → low fuel off / moderate / severe). Lets a judge pick any row.
 - **Live streaming** of real agent calls, no artificial pacing. The timeline is a scrollable history: auto-scroll pauses while you read back, a **"↓ new messages"** pill jumps to the latest, a **"thinking…"** indicator shows which agent is mid-call.
 - **Message cards** are compact one-liners; click to expand rationale, score vs floor and source chips. Checker pass/fail is always shown inline.
@@ -164,7 +164,7 @@ Sources: `constraints.xlsx:airport_capacity:MKE:spare_gates`, `constraints.xlsx:
 | Fixed rows | Demo-mode presets hard-code the rows (`web/src/lib/demo.ts`). Fill in the `<TBD>` values above once chosen. |
 | Checker visibly blocks a proposal in Scenario 3 | Fuel injection applied **after** F is built (mid-phase fuel-state update). |
 | Choosing branch 3a or 3b | S3 preset is fixed to **severe** (3b). Moderate (3a) is available in User mode. |
-| Human rejections | Demo mode pre-fills the scripted reasons and labels them "Scripted for demo". The presenter still clicks each decision. |
+| Human rejections | Demo mode pre-fills the scripted reasons, with no "scripted" label on screen. The presenter still clicks each decision. |
 | API failure during judging | The fallback path still produces a suggestion. Each preset's last clean run is saved in the browser; **Replay recorded run** plays it back, labelled "Recorded". Record all three (and 3a) before judging, on the presenting laptop. |
 | Judge asks for another row | Flip to User mode and run it. |
 

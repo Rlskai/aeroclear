@@ -33,7 +33,7 @@ A **Demo / User** toggle in the header, defaulting to **Demo**. Not the same as 
 | | Demo mode | User mode |
 |---|---|---|
 | Start a run | Three preset buttons: **S1 Happy path**, **S2 Ground-driven**, **S3 Low fuel**. Rows fixed, S3 has severe low fuel injected (branch 3b). | Picker: airport → delay type (`weather_late` / `late_only`) → row → "Inject low fuel" checkbox (moderate / severe) → Start. |
-| Reject reasons | Pre-filled with the scripted text; panel labelled **"Scripted for demo"**. | Empty, typed by hand. |
+| Reject reasons | Pre-filled with the scripted text; no label on screen. | Empty, typed by hand. |
 | API failure | **"Replay recorded run"** button plays a saved event stream, labelled **"Recorded"**. | No replay; real error or fallback result shown. |
 | Tamper button | Shown on Scenario 1 only. | Hidden. |
 | Agents, checker, fallback, log | Live, identical. | Live, identical. |
@@ -156,7 +156,7 @@ Use: run Demo mode for the pitch. If a judge asks "does it only work on these ro
 | 3 | Pauses on the checker block | ATC's next proposal → **Checker ✗ `FUEL_RESERVE`** (red, inline). The rejected proposal still uses its turn. |
 | 4 | Narrates | Infeasibility rule fires: no safe ORD slot. **`FALLBACK` · `INFEASIBLE_NO_SAFE_SLOT`** → Suggestion 1 = **divert to MDW** (nearest by `airports.csv`, fuel to reach + reserve checked). |
 | 5 | Points at baseline | Do-nothing at ORD shows a red `FUEL_RESERVE` violation. |
-| 6 | Pilot panel: **Reject** (pre-filled, "Scripted for demo"); ATC and Ground approve | Reason: *"MDW is 17 mi from ORD and under the same weather cell. Diverting there risks a second hold on fuel we don't have."* |
+| 6 | Pilot panel: **Reject** (pre-filled); ATC and Ground approve | Reason: *"MDW is 17 mi from ORD and under the same weather cell. Diverting there risks a second hold on fuel we don't have."* |
 | 7 | Phase 2 starts automatically | Divider: constraint "alternate must be outside weather radius" (`ASSUMPTION:shared_weather_radius`, about 50 mi); MDW on the rejected list. |
 | 8 | Narrates | Phase 2 → Suggestion 2 = **divert to MKE** (next-nearest outside radius, checker ✓). |
 | 9 | Ground panel: **Reject** (pre-filled); Pilot and ATC approve | Reason: *"MKE is a small hub with only 2 spare gates, both committed at the ETA. Handling an unplanned diversion would push the ground crew past their 8 h shift into 1.5x overtime."* (`constraints.xlsx:airport_capacity:MKE:spare_gates`, `constraints.xlsx:fuel_and_crew:Ground crew shift`) |
@@ -188,7 +188,7 @@ Fuel and crew: final reserve 30 min; spare on arrival 45 min (usable hold 15 min
 | Item | Where | Notes |
 |---|---|---|
 | Demo / User toggle + preset buttons | Web | Presets hard-code rows and injection level. |
-| Pre-filled scripted reasons + "Scripted for demo" label | Web | Demo mode only. |
+| Pre-filled scripted reasons (no on-screen label) | Web | Demo mode only. |
 | Replay recorded run | Web + saved event JSON | Record each scenario's event stream once it runs cleanly. |
 | Run history chips | Web | Uses existing `subscribe` replay. |
 | Auto-scroll with pause + "new messages" pill, thinking indicator | Web | |

@@ -32,7 +32,7 @@ function RolePanel({
   suggestion: Suggestion | null;
   decision?: Approval;
   locked: boolean;
-  /** Demo mode: this role's scripted reject for the current suggestion. */
+  /** Demo mode: this role's scripted reject reason, pre-filled on Reject. Not labelled on screen. */
   script?: ScriptedReject;
 }) {
   const [rejecting, setRejecting] = useState(false);
@@ -53,10 +53,9 @@ function RolePanel({
   }
 
   return (
-    <div className={`ap ${script && !decision ? "scripted" : ""}`}>
+    <div className="ap">
       <div className="ap-h">
         <b>{label}</b>
-        {script && !decision && <span className="tag">Script: reject</span>}
       </div>
       {decision ? (
         <span className={`decided ${decision.decision === "APPROVE" ? "ok" : "no"}`}>
@@ -88,7 +87,6 @@ function RolePanel({
             if (reason.trim()) send({ role, decision: "REJECT", reason: reason.trim() });
           }}
         >
-          {script && <span className="tag">Scripted for demo</span>}
           <label className="sr" htmlFor={`reason-${role}`}>
             Reason for rejecting
           </label>
@@ -153,7 +151,6 @@ function HumanCall({ run, preset }: { run: RunState; preset?: Preset }) {
           );
         })}
       </div>
-      {preset?.humanCall && <span className="tag">Scripted for demo</span>}
       <label className="sr" htmlFor="call-note">
         Decision note
       </label>
@@ -171,11 +168,13 @@ export function Approvals({
   run,
   suggestion,
   readOnly,
+  readOnlyNote = " Recorded run: decisions are replayed, not clickable.",
   preset,
 }: {
   run: RunState | null;
   suggestion: Suggestion | null;
   readOnly: boolean;
+  readOnlyNote?: string;
   preset?: Preset;
 }) {
   const approvals = suggestion && run ? (run.approvals[suggestion.index] ?? []) : [];
@@ -188,7 +187,7 @@ export function Approvals({
       <p className="sub">
         All three decide before anything happens. Any reject starts phase 2 with the reasons as constraints; a reject of Suggestion 2
         goes to a human call.
-        {readOnly && " Recorded run: decisions are replayed, not clickable."}
+        {readOnly && readOnlyNote}
       </p>
       <p className="note ap-for">
         {suggestion ? `Deciding on Suggestion ${suggestion.index}: ${where(suggestion)}` : run && !run.final ? "Waiting for the agents…" : "No suggestion yet."}

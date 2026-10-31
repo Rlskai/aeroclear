@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { backendLogText, verifyBackendRun } from "@/lib/backend";
 import { short, verifyChain } from "@/lib/hash";
 import type { LogEntry, VerifyResult } from "@/lib/types";
 import type { RunState } from "@/lib/useRun";
@@ -15,6 +16,8 @@ export function LogPanel({ run, tamperDemo }: { run: RunState | null; tamperDemo
   const entries = run?.entries ?? NO_ENTRIES;
   // Recorded runs have no backend run behind them; verify the replayed entries in the browser.
   const local = run?.source === "recorded";
+  // Real runs: re-hash the backend's log file with its own rule (aeroclear/chainlog.py).
+  const backend = run?.source === "backend";
   const runId = run?.runId ?? null;
   const sealed = !!run?.final;
 
@@ -22,16 +25,20 @@ export function LogPanel({ run, tamperDemo }: { run: RunState | null; tamperDemo
   useEffect(() => {
     if (!runId) return;
     let live = true;
-    (local ? verifyChain(entries) : api.verify(runId)).then((r) => live && setResult(r));
+    (local ? verifyChain(entries) : backend ? verifyBackendRun(runId) : api.verify(runId))
+      .then((r) => live && setResult(r))
+      .catch(() => live && setResult(null));
     return () => {
       live = false;
     };
-  }, [runId, local, entries, tick]);
+  }, [runId, local, backend, entries, tick]);
 
   async function download() {
     if (!runId) return;
-    const log: LogEntry[] = local ? entries : await api.getLog(runId);
-    const blob = new Blob([log.map((e) => JSON.stringify(e)).join("\n") + "\n"], { type: "application/x-ndjson" });
+    const text = backend
+      ? await backendLogText(runId)
+      : (local ? entries : await api.getLog(runId)).map((e: LogEntry) => JSON.stringify(e)).join("\n") + "\n";
+    const blob = new Blob([text], { type: "application/x-ndjson" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `negotiation-${runId}.jsonl`;

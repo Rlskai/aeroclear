@@ -172,6 +172,7 @@ export function Timeline({ run, running }: { run: RunState | null; running: bool
       <h2 id="h-neg">
         2. Negotiation timeline
         {run?.source === "recorded" && <span className="mode">Recorded</span>}
+        {run?.source === "backend" && <span className="mode live">Real run</span>}
       </h2>
       <p className="sub">
         Max 2 phases, 3 turns each. Click a message to see its rationale, score and sources. Scroll up to read back; the stream keeps going.
@@ -188,10 +189,13 @@ export function Timeline({ run, running }: { run: RunState | null; running: bool
                 <span>
                   Phase {p.phase} · up to {p.limits.max_turns} turns
                 </span>
-                <span className="mono">
-                  Wall clock {p.wall_s}s / {p.limits.wall_clock_s} s · Tokens {p.tokens.toLocaleString()} /{" "}
-                  {p.limits.token_cap.toLocaleString()}
-                </span>
+                {/* Real runs: the backend log has no timings or token counts. */}
+                {!!p.limits.token_cap && (
+                  <span className="mono">
+                    Wall clock {p.wall_s}s / {p.limits.wall_clock_s} s · Tokens {p.tokens.toLocaleString()} /{" "}
+                    {p.limits.token_cap.toLocaleString()}
+                  </span>
+                )}
               </div>
               {!!p.constraintsAdded.length && (
                 <div className="added">
