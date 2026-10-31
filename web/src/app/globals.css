@@ -1,0 +1,88 @@
+/* Ported from references/Disruption Negotiation Mockup.html. Additions are marked. */
+body{margin:0}
+*{box-sizing:border-box}
+.pg{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:#0F1B2D;background:#F3F5F8;min-height:100vh}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.top{background:#0F1B2D;color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.top h1{margin:0;font-size:18px;font-weight:600}
+.top small{color:#B9C4D6;font-size:12px}
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 48px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #D5DBE5;border-radius:10px;padding:20px}
+.card h2{margin:0 0 4px;font-size:15px;font-weight:700}
+.sub{margin:0 0 14px;font-size:12px;color:#4A5870}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#4A5870;flex:1;min-width:120px}
+.fld select{height:44px;border:1px solid #9AA7BC;border-radius:8px;padding:0 10px;font-size:14px;background:#fff;color:#0F1B2D}
+.btn{height:44px;padding:0 18px;border-radius:8px;border:1px solid #1F5FBF;background:#1F5FBF;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:#fff;color:#1F5FBF}
+.btn.ok{background:#176B3F;border-color:#176B3F}
+.btn.no{background:#fff;color:#A1231B;border-color:#A1231B}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{font-size:12px;padding:4px 10px;border-radius:999px;background:#E8EDF5;color:#23324A}
+.phase{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4A5870;display:flex;justify-content:space-between}
+.turn{border:1px solid #D5DBE5;border-radius:8px;margin-bottom:12px;overflow:hidden}
+.turn>h3{margin:0;padding:8px 14px;background:#EEF2F8;font-size:12px;font-weight:700;color:#23324A;display:flex;justify-content:space-between}
+.msg{display:grid;grid-template-columns:78px 120px 1fr;gap:12px;padding:10px 14px;border-top:1px solid #E6EAF1;font-size:13px;line-height:1.45}
+.who{font-weight:700;font-size:12px}
+.atc{color:#1F5FBF}.plt{color:#7A3FB0}.gnd{color:#8A4B00}.chk{color:#176B3F}
+.typ{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;height:fit-content;width:fit-content;background:#E8EDF5;color:#23324A}
+.typ.acc{background:#DDF1E5;color:#0F5B33}.typ.rej{background:#F9DEDC;color:#8E1D16}.typ.ck{background:#DDF1E5;color:#0F5B33}
+.src{display:inline-block;margin-top:4px;font-size:11px;color:#4A5870;background:#F3F5F8;border:1px solid #D5DBE5;border-radius:4px;padding:1px 6px}
+.res{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.kv{border:1px solid #D5DBE5;border-radius:8px;padding:12px}
+.kv b{display:block;font-size:24px;margin:2px 0 4px}
+.kv span.l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4A5870}
+.status{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#DDF1E5;color:#0F5B33;margin-bottom:12px}
+.appr{display:grid;grid-template-columns:1fr;gap:10px}
+.ap{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #D5DBE5;border-radius:8px;padding:10px 12px;font-size:13px;flex-wrap:wrap}
+.ap .b{display:flex;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid #E6EAF1}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#4A5870}
+td.best{font-weight:700;color:#0F5B33}
+.col{display:flex;flex-direction:column;gap:24px}
+.log{font-size:11px;line-height:1.6;background:#0F1B2D;color:#D7E0EE;border-radius:8px;padding:12px;overflow-x:auto;white-space:nowrap}
+.note{font-size:12px;color:#4A5870;margin:10px 0 0}
+
+/* Additions: interactive states not in the static mockup */
+.src{max-width:100%;overflow-wrap:anywhere}
+.kv{min-width:0}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{height:36px;padding:0 12px;font-size:13px}
+.btn:focus-visible,.chip:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #1F5FBF;outline-offset:2px}
+button.chip{border:1px solid transparent;cursor:pointer;font:inherit;font-size:12px}
+button.chip[aria-pressed="true"]{background:#F9DEDC;color:#8E1D16;border-color:#E9B4AF}
+.mode{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#FCE7B4;color:#5C3B00;margin-left:8px;vertical-align:middle}
+.mode.live{background:#DDF1E5;color:#0F5B33}
+.typ.fb{background:#FCE7B4;color:#5C3B00}
+.typ.hum{background:#E7DDF5;color:#4F2A7A}
+.who.sys{color:#4A5870}.who.hum{color:#4F2A7A}
+.status.wait{background:#E8EDF5;color:#23324A}
+.status.warn{background:#FCE7B4;color:#5C3B00}
+.status.bad{background:#F9DEDC;color:#8E1D16}
+.empty{font-size:13px;color:#4A5870;border:1px dashed #C3CCDA;border-radius:8px;padding:18px;text-align:center}
+.kv b.ph{color:#9AA7BC}
+.reason{display:flex;gap:8px;width:100%}
+.reason input{flex:1;height:36px;border:1px solid #9AA7BC;border-radius:8px;padding:0 10px;font-size:13px}
+.decided{font-size:12px;font-weight:700}
+.decided.ok{color:#0F5B33}.decided.no{color:#8E1D16}
+.log{max-height:240px;overflow-y:auto}
+.log .bad{color:#FF9B93}
+.call{margin-top:14px;border:1px solid #E9B4AF;background:#FDF4F3;border-radius:8px;padding:12px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+.call label{display:flex;gap:8px;align-items:center}
+.call textarea{border:1px solid #9AA7BC;border-radius:8px;padding:8px;font:inherit;min-height:56px}
+.err{background:#F9DEDC;color:#8E1D16;border-radius:8px;padding:10px 12px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(prefers-reduced-motion:no-preference){.msg{animation:fade .25s ease-out}}
+@keyframes fade{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+@media(max-width:640px){
+.wrap{padding:16px}
+.top{padding:14px 16px}
+.wrap>.col{min-width:0}
+.msg{grid-template-columns:auto 1fr}
+.msg>div{grid-column:1/-1}
+.phase{flex-direction:column;gap:4px}
+.res{grid-template-columns:minmax(0,1fr)}
+}
